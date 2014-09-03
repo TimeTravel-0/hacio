@@ -1,0 +1,145 @@
+<!DOCTYPE HTML><html><head>
+<title>pixi test</title>
+<style>
+body {margin: 0;padding: 0;background-color: #000000;}
+</style>
+<script src="pixi.js"></script>
+</head><body>
+<script>
+//------------------------------------------
+function hacker(id)
+{
+    this.texname = "default-avatar.png"
+    this.usrname = "w00t!"
+    var texture = PIXI.Texture.fromImage(this.texname);
+    PIXI.DisplayObjectContainer.call(this);
+    this.id = id;
+
+    //this.anchor.x = 0.5;
+    //this.anchor.y = 0.5;
+    this.position.x = 200;
+    this.position.y = 200;
+    //this.scale = new PIXI.Point(0.5,0.5);
+
+    var line = new PIXI.Graphics();
+    this.addChild(line);
+    line.lineStyle(5,0xFF0000);
+    line.moveTo(0,0);
+    line.lineTo(0,100);
+
+    var image = new PIXI.Sprite(texture);
+    this.addChild(image);
+    image.width=100;
+    image.height=100;
+    image.anchor.x = 0.5;
+    image.anchor.y = 0.5;
+
+    var text = new PIXI.Text(this.usrname);
+    this.addChild(text);
+    text.anchor.x = 0.5;
+    text.anchor.y = 0.0;
+    text.position.y = 50;
+
+
+    this.setInteractive(true);
+
+    this.dragEnable = false;
+    this.dragStartMouse = Array(0,0);
+    this.dragStartObject = Array(0,0);
+
+}
+hacker.constructor = hacker;
+hacker.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
+
+hacker.prototype.update = function() {
+    this.rotation+=0.05;
+    //this.position.x=Math.sin(this.rotation)*100+400;
+    //this.position.y=Math.cos(this.rotation)*100+400;
+}
+
+hacker.prototype.mousedown = function(mouseData) {
+    this.dragEnable = true;
+    this.dragStartMouse = Array(mouseData.global.x,mouseData.global.y);
+    this.dragStartObject = Array(this.position.x,this.position.y);
+}
+
+hacker.prototype.mousemove = function(mouseData) {
+    if(this.dragEnable) {
+        // delta x, delta y calc for mouse
+        var deltax = mouseData.global.x - this.dragStartMouse[0];
+        var deltay = mouseData.global.y - this.dragStartMouse[1];
+        this.position.x = this.dragStartObject[0] + deltax;
+        this.position.y = this.dragStartObject[1] + deltay;
+    }
+}
+
+hacker.prototype.mouseup = function(mouseData) {
+    this.dragEnable = false;
+}
+
+hacker.prototype.mouseout = function(mouseData) {
+    this.dragEnable = false;
+}
+
+//------------------------------------------
+
+var stage = new PIXI.Stage(0x808080,true);
+var renderer = PIXI.autoDetectRenderer(800, 600);
+document.body.appendChild(renderer.view);
+
+
+var hackers = Array();
+
+for(var i=0;i<10;i++) {
+    h = new hacker(i);
+    hackers.push(h);
+    stage.addChild(h);
+
+}
+
+
+
+requestAnimFrame(update);
+
+
+function update() {
+    requestAnimFrame(update);
+    for(var i=0;i<10;i++) {
+        hackers[i].update();
+    }
+    renderer.render(stage);
+}
+
+
+//------------------------------------------
+
+function maximizeRenderer() {
+    renderer.resize(1,1)
+    dimensions = getViewportDimensions()
+    renderer.resize(dimensions[0],dimensions[1])
+}
+
+function getViewportDimensions() {
+    var getDimensions = document.createElement("div");
+    getDimensions.setAttribute("style", 
+            "visibility:hidden;position:fixed;bottom:0px;right:0px;");
+    document.getElementsByTagName("body")[0].appendChild(getDimensions);
+    var viewportWidth = getDimensions.offsetLeft;
+    var viewportHeight = getDimensions.offsetTop;
+    document.getElementsByTagName("body")[0].removeChild(getDimensions);
+    return Array(viewportWidth,viewportHeight)
+}
+
+
+window.onload = function() {
+    maximizeRenderer()
+}
+window.onresize = function() {
+    maximizeRenderer()
+}
+
+
+</script>
+</body>
+</html>
+
