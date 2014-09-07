@@ -7,6 +7,75 @@ body {margin: 0;padding: 0;background-color: #000000;}
 </head><body>
 <script>
 //------------------------------------------
+function link(hacker1,hacker2,linktype)
+{
+    this.hacker1 = hacker1
+    this.hacker2 = hacker2
+    this.linktype = linktype
+
+    this.path = [this.hacker1.position.x,this.hacker1.position.y,this.hacker2.position.x,this.hacker2.position.y]
+
+    PIXI.DisplayObjectContainer.call(this);
+
+    this.line = new PIXI.Graphics();
+    this.addChild(this.line);
+/*
+    line.lineStyle(5,0xFF0000);
+    line.drawPath(path)
+*/
+}
+
+link.constructor = link;
+link.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
+link.prototype.update = function() {
+
+    this.path = [this.hacker1.position.x,this.hacker1.position.y,this.hacker2.position.x,this.hacker2.position.y]
+
+    this.line.clear()
+    this.line.lineStyle(5,0xFF0000); 
+    this.line.drawPath(this.path)
+
+    // spring thing
+
+    distancex = this.hacker2.x - this.hacker1.x
+    distancey = this.hacker2.y - this.hacker1.y
+    centerx = this.hacker1.x + distancex/2
+    centery = this.hacker1.y + distancey/2
+
+
+    distance = Math.pow( Math.pow(distancex,2) + Math.pow(distancey,2) , 0.5)
+/*
+    angle = Math.atan(distancey/distancex)
+    if(isNaN(angle)) {
+        angle=Math.PI/2
+    }
+    
+    distance*=0.99
+
+    distancex = Math.cos(angle)*distance
+    distancey = Math.sin(angle)*distance    
+*/
+
+    if(distance>160) {
+        distancex*=0.99
+        distancey*=0.99
+    }
+    if(distance<140) {
+        distancex/=0.99
+        distancey/=0.99
+    }
+
+    this.hacker1.position.x = centerx - distancex/2
+    this.hacker1.position.y = centery - distancey/2
+    this.hacker2.position.x = centerx + distancex/2
+    this.hacker2.position.y = centery + distancey/2
+
+}
+
+
+
+
+//------------------------------------------
 function hacker(id)
 {
     this.texname = "default-avatar.png"
@@ -21,11 +90,13 @@ function hacker(id)
     this.position.y = 200;
     //this.scale = new PIXI.Point(0.5,0.5);
 
+/*
     var line = new PIXI.Graphics();
     this.addChild(line);
     line.lineStyle(5,0xFF0000);
     line.moveTo(0,0);
     line.lineTo(0,100);
+*/
 
     var image = new PIXI.Sprite(texture);
     this.addChild(image);
@@ -89,23 +160,31 @@ document.body.appendChild(renderer.view);
 
 
 var hackers = Array();
+var links = Array();
 
-for(var i=0;i<10;i++) {
+for(var i=0;i<5;i++) {
     h = new hacker(i);
     hackers.push(h);
     stage.addChild(h);
 
 }
 
-
+for(var j=0;j<4;j++) {
+    l = new link(hackers[j],hackers[(j+1)%hackers.length],0);
+    links.push(l);
+    stage.addChild(l);
+}
 
 requestAnimFrame(update);
 
 
 function update() {
     requestAnimFrame(update);
-    for(var i=0;i<10;i++) {
+    for(var i=0;i<hackers.length;i++) {
         hackers[i].update();
+    }
+    for(var j=0;j<links.length;j++) {
+        links[j].update();
     }
     renderer.render(stage);
 }
